@@ -2,7 +2,7 @@ import telebot
 import cases
 import buttons
 import re
-regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
+regex = re.compile(r'([https]+[://])*[steamcommunity.com]+[/]+[tradeoffer]+[/]+[new]+[?/]+[partner]+[=]+[123456789]+[&]+[token]+[=]+[ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz]')
 
 
 bot = telebot.TeleBot('6450268677:AAGGV8QeP_le-662m1CwWtkH2DiG6MxqiEk')
@@ -43,20 +43,20 @@ def get_nick(message):
 
 
 # noinspection PyUnreachableCode
-# def get_trade(message, name, email):
-#     user_id = message.from_user.id
-#
-#     if re.fullmatch(regex, email):
-#         cases.register(user_id, name, email)
-#         bot.send_message(user_id, 'Вы в внесены в базу', reply_markup=telebot.types.ReplyKeyboardRemove())
-#         products = cases.get_case_name_id()
-#         bot.send_message(user_id, 'Выберите опцию', reply_markup=buttons.main(products))
-#         return True
-#     else:
-#         bot.send_message(user_id, 'Отправьте вашу ссылку корректнее')
-#         return False
-#
-#     bot.register_next_step_handler(mmessage, group_chat, user_id, email)
+def get_trade(message, name, email):
+    user_id = message.from_user.id
+
+    if re.fullmatch(regex, email):
+        cases.register(user_id, name, email)
+        bot.send_message(user_id, 'Вы в внесены в базу', reply_markup=telebot.types.ReplyKeyboardRemove())
+        products = cases.get_case_name_id()
+        bot.send_message(user_id, 'Выберите опцию', reply_markup=buttons.main(products))
+        return True
+    else:
+        bot.send_message(user_id, 'Отправьте вашу ссылку корректнее')
+        return False
+
+    bot.register_next_step_handler(mmessage, group_chat, email)
 
 
 @bot.callback_query_handler(lambda call: call.data in ['plus', 'minus', 'add_cart', 'back', 'count'])

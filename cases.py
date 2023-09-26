@@ -37,14 +37,33 @@ def skan(user_id):
     else:
         return False
 
+def check_case(name):
+    db = sqlite3.connect('my_inventory.db')
+
+    inventory = db.cursor()
+
+    check = inventory.execute('SELECT product_name, product_quantity FROM store WHERE product_name=?;', (name, )).fetchone()
+
+    if check:
+        return check
+    else:
+        return False
+
 
 def add_cases(product_name, price, product_quantity, photo, product_des):
     db = sqlite3.connect('my_inventory.db')
     inventory = db.cursor()
-
-    inventory.execute('INSERT INTO store'
-                      '(product_name, price, product_quantity, product_des, photo, product_data) VALUES'
-                      '(?, ?, ?, ?, ?, ?);', (product_name, price, product_quantity, product_des, photo, datetime.now()))
+    checker = check_case(product_name)
+    if checker != False:
+        # try:
+        new_quantity = product_quantity + checker[1]
+        inventory.execute('UPDATE store SET product_quantity=? WHERE product_name=?;', (new_quantity, product_name))
+        # except:
+        #     pass
+    else:
+        inventory.execute('INSERT INTO store'
+                        '(product_name, price, product_quantity, product_des, photo, product_data) VALUES'
+                        '(?, ?, ?, ?, ?, ?);', (product_name, price, product_quantity, product_des, photo, datetime.now()))
     db.commit()
 
 
@@ -52,7 +71,8 @@ def get_case_name_id():
     db = sqlite3.connect('my_inventory.db')
     inventory = db.cursor()
 
-    product = inventory.execute('SELECT product_name, product_id, product_id, product_quantity FROM store;').fetchall()
+    product = inventory.execute('SELECT product_name, product_id, product_quantity FROM store;').fetchall()
+
     sorted_pr = [(i[0], i[1]) for i in product if i[2] > 0]
 
     return sorted_pr
@@ -96,5 +116,8 @@ def get_cart(user_id):
 
     return user_cart
 
+
+# 1 добавить функцию получения всех айди продуктов
+# 2 добавить функцию получения данных товара айди продуктов
 
 

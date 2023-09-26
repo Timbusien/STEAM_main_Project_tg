@@ -1,4 +1,3 @@
-import cases
 from telebot import types
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -14,7 +13,7 @@ def main(get_case_name_id):
     buttons = InlineKeyboardMarkup()
     order = InlineKeyboardButton(text='Оформление', callback_data='order')
     cart = InlineKeyboardButton(text='Ваша Корзина', callback_data='cart')
-    all_products = [InlineKeyboardButton(text=i[0], callback_data=i[1]) for i in cases.get_case_name_id()]
+    all_products = [InlineKeyboardButton(text=f'{i[0]}', callback_data=str(i[1])) for i in get_case_name_id()]
     buttons.row(order)
     buttons.add(*all_products)
     buttons.row(cart)
@@ -56,5 +55,4 @@ def get_cart():
     buttons.add(cls, order, back)
 
     return buttons
-
 

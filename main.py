@@ -1,8 +1,8 @@
 import telebot
 import cases
 import buttons
-import re
-regex = re.compile(r'([https]+[://])*[steamcommunity.com]+[/]+[tradeoffer]+[/]+[new]+[?/]+[partner]+[=]+[123456789]+[&]+[token]+[=]+[ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz]')
+# import re
+# regex = re.compile(r'([https]+[://])*[steamcommunity.com]+[/]+[tradeoffer]+[/]+[new]+[?/]+[partner]+[=]+[123456789]+[&]+[token]+[=]+[ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz]')
 
 
 bot = telebot.TeleBot('6450268677:AAGGV8QeP_le-662m1CwWtkH2DiG6MxqiEk')
@@ -29,7 +29,7 @@ def start_bot(message):
         product = cases.get_case_name_id()
         print(product)
         bot.send_message(user_id, 'Здравствуйте!', reply_markup=telebot.types.ReplyKeyboardRemove())
-        bot.send_message(user_id, 'Зарегистрируйтесь', buttons.main(product))
+        bot.send_message(user_id, 'Выберите опцию из меню', buttons.main(product))
     elif not skan:
         bot.send_message(user_id, 'Отправьте ваш ник в стиме')
     bot.register_next_step_handler(message, get_nick)
@@ -39,24 +39,25 @@ def get_nick(message):
     user_id = message.from_user.id
     user = message.text
     bot.send_message(user_id, 'Отправьте вашу трейд ссылку', reply_markup=telebot.types.ReplyKeyboardRemove())
-    bot.register_next_step_handler(message, user)
+    bot.register_next_step_handler(message, get_trade, user)
 
 
 # noinspection PyUnreachableCode
-def get_trade(message, name, email):
+def get_trade(message, user):
     user_id = message.from_user.id
+    email = message.text
 
-    if re.fullmatch(regex, email):
-        cases.register(user_id, name, email)
-        bot.send_message(user_id, 'Вы в внесены в базу', reply_markup=telebot.types.ReplyKeyboardRemove())
-        products = cases.get_case_name_id()
-        bot.send_message(user_id, 'Выберите опцию', reply_markup=buttons.main(products))
-        return True
-    else:
-        bot.send_message(user_id, 'Отправьте вашу ссылку корректнее')
-        return False
+    # if re.fullmatch(regex, email):
+    cases.register(user_id, user, email)
+    bot.send_message(user_id, 'Вы в внесены в базу', reply_markup=telebot.types.ReplyKeyboardRemove())
+    products = cases.get_case_name_id()
+    bot.send_message(user_id, 'Выберите опцию', reply_markup=buttons.main(products))
+        # return True
+    # else:
+        # bot.send_message(user_id, 'Отправьте вашу ссылку корректнее')
+        # return False
 
-    bot.register_next_step_handler(mmessage, group_chat, email)
+    bot.register_next_step_handler(message, group_chat, email)
 
 
 @bot.callback_query_handler(lambda call: call.data in ['plus', 'minus', 'add_cart', 'back', 'count'])

@@ -1,19 +1,13 @@
 from telebot import types
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-
-def choice_buttons():
-    buttons = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    register = types.KeyboardButton('Регистрация')
-    buttons.add(register)
-
-    return buttons
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 
 
 def main(get_case_name_id):
     buttons = InlineKeyboardMarkup()
     order = InlineKeyboardButton(text='Оформление', callback_data='order')
     cart = InlineKeyboardButton(text='Ваша Корзина', callback_data='cart')
-    all_products = [InlineKeyboardButton(text=f'{i[0]}', callback_data=str(i[1])) for i in get_case_name_id()]
+    all_products = [InlineKeyboardButton(text=f'{i[0]}', callback_data=i[1]) for i in get_case_name_id]
+
     buttons.row(order)
     buttons.add(*all_products)
     buttons.row(cart)
@@ -55,4 +49,30 @@ def get_cart():
     buttons.add(cls, order, back)
 
     return buttons
+
+def choice_buttons():
+    buttons = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    register = types.KeyboardButton('Регистрация')
+    buttons.add(register)
+
+    return buttons
+
+
+def accept():
+    buttons = ReplyKeyboardMarkup(resize_keyboard=True)
+
+    agree = KeyboardButton('Подтвердить')
+    disagree = KeyboardButton('Отклонить')
+
+    buttons.add(agree, disagree)
+
+    return buttons
+
+
+
+
+
+
+
+
 

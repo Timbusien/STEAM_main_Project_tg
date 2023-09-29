@@ -1,6 +1,7 @@
 import telebot
 import cases
 import buttons
+from telebot import types
 # import re
 # regex = re.compile(r'([https]+[://])*[steamcommunity.com]+[/]+[tradeoffer]+[/]+[new]+[?/]+[partner]+[=]+[123456789]+[&]+[token]+[=]+[ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz]')
 
@@ -28,8 +29,8 @@ def start_bot(message):
     if skan:
         product = cases.get_case_name_id()
         print(product)
-        bot.send_message(user_id, 'Здравствуйте!', reply_markup=telebot.types.ReplyKeyboardRemove())
-        bot.send_message(user_id, 'Выберите опцию из меню', buttons.main(product))
+        bot.send_message(user_id, 'Здравствуйте!')
+        bot.send_message(user_id, 'Выберите опцию из меню', reply_markup=buttons.main(product))
     elif not skan:
         bot.send_message(user_id, 'Отправьте ваш ник в стиме')
     bot.register_next_step_handler(message, get_nick)
@@ -49,7 +50,7 @@ def get_trade(message, user):
 
     # if re.fullmatch(regex, email):
     cases.register(user_id, user, email)
-    bot.send_message(user_id, 'Вы в внесены в базу', reply_markup=telebot.types.ReplyKeyboardRemove())
+    bot.send_message(user_id, f'Вы в внесены в базу под ником {user}', reply_markup=telebot.types.ReplyKeyboardRemove())
     products = cases.get_case_name_id()
     bot.send_message(user_id, 'Выберите опцию', reply_markup=buttons.main(products))
         # return True
@@ -57,22 +58,22 @@ def get_trade(message, user):
         # bot.send_message(user_id, 'Отправьте вашу ссылку корректнее')
         # return False
 
-    bot.register_next_step_handler(message, group_chat, email)
+    bot.register_next_step_handler(message, get_trade, email)
 
 
 @bot.callback_query_handler(lambda call: call.data in ['plus', 'minus', 'add_cart', 'back', 'count'])
 def get_product_count(call):
     user_id = call.message.chat.id
     if call.data == 'plus':
-        actual = costumer[user_id]['product_quantity']
-        costumer[user_id]['product_quantity'] += 1
+        actual = costumer[user_id]['product_count']
+        costumer[user_id]['product_count'] += 1
         bot.edit_message_reply_markup(chat_id=user_id, message_id=call.message.message_id,
                                       reply_markup=buttons.choose_count('plus', actual))
 
     elif call.data == 'minus':
-        actual = costumer[user_id]['product_quantity']
+        actual = costumer[user_id]['product_count']
 
-        costumer[user_id]['product_quantity'] -= 1
+        costumer[user_id]['product_count'] -= 1
         bot.edit_message_reply_markup(chat_id=user_id, message_id=call.message.message_id,
                                       reply_markup=buttons.choose_count('minus', actual))
 
@@ -82,8 +83,8 @@ def get_product_count(call):
                               reply_markup=buttons.main(products))
 
     elif call.data == 'add_cart':
-        product_count = costumer[user_id]['product_quantity']
-        user_product = costumer[user_id]['pr_name']
+        product_count = costumer[user_id]['product_count']
+        user_product = costumer[user_id]['product_name']
 
         cases.append(user_id, user_product, product_count)
         products = cases.get_case_name_id()
@@ -91,27 +92,39 @@ def get_product_count(call):
                               user_id, call.message.message_id,
                               reply_markup=buttons.main(products))
 
-    elif call.data == 'delete':
-        product_count = costumer.pop('product quantity')
-        cases.remove(product_count)
-        bot.edit_message_text('Продукт был успешно удалён', user_id, call.message.message_id,
-                              reply_markup=buttons.main(product_count))
 
-def group_chat(message, user_nick, email):
-    user_id = message.text
-    bot.send_message(-1001500295547, f'New order!\n\n Client name {user_nick}\n'
-                                          f'trade link {email}')
-
-    bot.send_message(user_id, 'Successfull')
-    bot.register_next_step_handler(message, start_bot)
+# def group_chat(message, user_nick, email):
+#     user_id = message.text
+#     bot.send_message(-1001500295547, f'New order!\n\n Client name {user_nick}\n'
+#                                           f'trade link {email}')
+#
+#     bot.send_message(user_id, 'Successfull')
+#     bot.register_next_step_handler(message, start_bot)
 
 @bot.callback_query_handler(lambda call: call.data in ['order', 'cart', 'clear_cart'])
 def main_menu(call):
     user_id = call.message.chat.id
-    message_id = call.message.user_id
+    message_id = call.message.message_id
     if call.data == 'order':
         bot.delete_message(user_id, message_id)
-        bot.register_next_step_handler(call.message, start_bot)
+        user_cart = cases.get_cart(user_id)
+
+        full_text = 'Ваш заказ:\n\n'
+        user_info = cases.get_user_trade_link(user_id)
+        print(user_info)
+
+        full_text += f'Имя: {user_info[0]}\nВаша ссылка: {user_info[1]}\n\n'
+        total = 0
+
+        for i in user_cart:
+            full_text += f'{i[0]} x {i[1]} = {i[2]}\n'
+            total += i[2]
+
+        full_text += f'\nПодытожим: {total}'
+        bot.send_message(user_id, full_text, reply_markup=buttons.accept())
+
+        bot.register_next_step_handler(call.message, accept, full_text)
+
     elif call.data == 'cart':
         user_cart = cases.get_cart(user_id)
 
@@ -126,9 +139,52 @@ def main_menu(call):
 
         bot.edit_message_text(full, user_id, message_id, reply_markup=buttons.get_cart())
 
+    elif call.data == 'clear_cart':
 
+        cases.remove(user_id)
+
+        bot.edit_message_text('Ваша корзина пуста', user_id, message_id, reply_markup=buttons.main(cases.get_case_name_id()))
+
+
+def accept(message, full_text):
+    user_id = message.from_user.id
+    message_id = message.message_id
+    answer = message.text
+
+    product = cases.get_case_name_id()
+
+    if answer == 'Подтвердить':
+        group_id = -1001500295547
+
+        cases.remove(user_id)
+
+        bot.send_message(group_id, full_text.replace('New guy', 'here'))
+
+        bot.send_message(user_id, 'Ващ заказ принят на обработку', reply_markup=types.ReplyKeyboardRemove())
+
+    elif answer == 'Отклонить':
+        bot.send_message(user_id, 'Заказ отклонён', reply_markup=types.ReplyKeyboardRemove())\
+
+    bot.send_message(user_id, 'Опции', reply_markup=buttons.main(product))
+
+
+@bot.callback_query_handler(lambda call: int(call.data) in cases.get_cs_id())
+def get_user_product(call):
+    user_id = call.message.chat.id
+    costumer[user_id] = {'product_name': call.data, 'product_count': 1}
+    print(costumer)
+
+    message_id = call.message.message_id
+
+    bot.edit_message_text('Выберите количество',
+                          chat_id=user_id, message_id=message_id,
+                          reply_markup=buttons.choose_count())
 
 
 
 
 bot.infinity_polling()
+
+
+
+

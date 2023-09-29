@@ -7,10 +7,10 @@ inventory = db.cursor()
 
 
 inventory.execute('CREATE TABLE IF NOT EXISTS user'
-                  '(nick TEXT, trade_link TEXT, telegram_id INT, date DATETIME)')
+                  '(nick TEXT, trade_link TEXT, telegram_id INT, date DATETIME);')
 
 inventory.execute('CREATE TABLE IF NOT EXISTS store'
-                  '(product_name TEXT, product_des TEXT, price REAL, product_id INTEGER PRIMARY KEY AUTOINCREMENT, product_quantity INT, product_data DATETIME, photo TEXT)')
+                  '(product_id INTEGER PRIMARY KEY AUTOINCREMENT, product_name TEXT, price REAL, product_quantity INT, product_des TEXT,  photo TEXT, product_data DATETIME);')
 
 inventory.execute('CREATE TABLE IF NOT EXISTS cart'
                   '(user_id INT, user_product TEXT, quantity INT, total REAL);')
@@ -71,53 +71,71 @@ def get_case_name_id():
     db = sqlite3.connect('my_inventory.db')
     inventory = db.cursor()
 
-    product = inventory.execute('SELECT product_name, product_id, product_quantity FROM store;').fetchall()
+    product = inventory.execute('SELECT product_id, product_name, product_quantity FROM store;').fetchall()
 
-    sorted_pr = [(i[0], i[1]) for i in product if i[2] > 0]
+    sorted_pr = [(i[1], i[0]) for i in product if i[2] > 0]
+
+    return sorted_pr
+
+
+def get_cs_id():
+    db = sqlite3.connect('my_inventory.db')
+
+    inventory = db.cursor()
+
+    product = inventory.execute('SELECT product_id, product_quantity FROM store;').fetchall()
+    sorted_pr = [(i[0]) for i in product if i[1] > 0]
 
     return sorted_pr
 
 
 def get_case_id(product_id):
     db = sqlite3.connect('my_inventory.db')
+
     inventory = db.cursor()
 
-    product = inventory.execute('SELECT product_name, product des, photo, price'
-                                'FROM store WHERE product_id=?;', (product_id, )).fetchone()
-
-
-    return product
+    product_id = inventory.execute('SELECT *'
+                                   'FROM store WHERE product_id=?;', (product_id, )).fetchone()[2]
+    print(product_id)
+    return product_id
 
 
 def append(user_id, user_product, quantity):
     db = sqlite3.connect('my_inventory.db')
     inventory = db.cursor()
 
-    price_case = get_case_id(user_product)[2]
+    price_case = get_case_id(user_product)
 
     inventory.execute('INSERT INTO cart'
-                      '(user_id, user_product, quntity)'
-                      'VAlUES (?, ?, ?);', (user_id, user_product, quantity, quantity * price_case))
+                      '(user_id, user_product, quantity, total)'
+                      'VAlUES (?, ?, ?, ?);', (user_id, user_product, quantity, quantity * price_case))
     db.commit()
 
 
-def remove(product_id):
+def remove(user_id):
     db = sqlite3.connect('my_inventory.db')
     inventory = db.cursor()
 
-    inventory.execute('DELETE FROM cart WHERE user_product=?;', (product_id, ))
+    inventory.execute('DELETE FROM cart WHERE user_id=?;', (user_id, ))
 
 
 def get_cart(user_id):
     db = sqlite3.connect('my_inventory.db')
     inventory = db.cursor()
 
-    user_cart = inventory.execute('SELECT store.product_name, cart.quantity, cart.total, FROM store INNER JOIN cart ON store.user_product WHERE user_id=?;', (user_id, )).fetchall()
+    user_cart = inventory.execute('SELECT store.product_name, cart.quantity, cart.total FROM store INNER JOIN cart ON store.product_id=cart.user_product WHERE cart.user_id=?;',
+                                  (user_id, )).fetchall()
+
+    print(user_cart)
 
     return user_cart
 
 
-# 1 добавить функцию получения всех айди продуктов
-# 2 добавить функцию получения данных товара айди продуктов
+def get_user_trade_link(user_id):
+    db = sqlite3.connect('my_inventory.db')
+    inventory = db.cursor()
 
+    trade_link = inventory.execute('SELECT nick, trade_link FROM user WHERE telegram_id=?;', (user_id, ))
+
+    return trade_link.fetchone()
 

@@ -84,7 +84,7 @@ def get_cs_id():
     inventory = db.cursor()
 
     product = inventory.execute('SELECT product_id, product_quantity FROM store;').fetchall()
-    sorted_pr = [(i[0]) for i in product if i[1] > 0]
+    sorted_pr = [i[0] for i in product if i[1] > 0]
 
     return sorted_pr
 
@@ -117,6 +117,8 @@ def remove(user_id):
     inventory = db.cursor()
 
     inventory.execute('DELETE FROM cart WHERE user_id=?;', (user_id, ))
+
+    db.commit()
 
 
 def get_cart(user_id):

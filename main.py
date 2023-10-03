@@ -40,7 +40,7 @@ def start_bot(message):
 def get_nick(message):
     user_id = message.from_user.id
     user = message.text
-    bot.send_message(user_id, 'Отправьте вашу трейд ссылку', reply_markup=telebot.types.ReplyKeyboardRemove())
+    bot.send_message(user_id, 'Отправьте вашу трейд ссылку')
     bot.register_next_step_handler(message, get_trade, user)
 
 

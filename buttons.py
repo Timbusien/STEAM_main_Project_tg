@@ -6,7 +6,7 @@ def main(get_case_name_id):
     buttons = InlineKeyboardMarkup()
     order = InlineKeyboardButton(text='Оформление', callback_data='order')
     cart = InlineKeyboardButton(text='Ваша Корзина', callback_data='cart')
-    all_products = [InlineKeyboardButton(text=f'{i[0]}', callback_data=i[1]) for i in get_case_name_id]
+    all_products = [InlineKeyboardButton(text=i[0], callback_data=i[1]) for i in get_case_name_id]
 
     buttons.row(order)
     buttons.add(*all_products)
@@ -65,6 +65,14 @@ def accept():
     disagree = KeyboardButton('Отклонить')
 
     buttons.add(agree, disagree)
+
+    return buttons
+
+
+def comment():
+    buttons = ReplyKeyboardMarkup(resize_keyboard=True)
+    com = KeyboardButton('Перейти на сайт')
+    buttons.add(com)
 
     return buttons
 

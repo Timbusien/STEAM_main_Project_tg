@@ -32,8 +32,19 @@ def start_bot(message):
         print(product)
         bot.send_message(user_id, 'Здравствуйте!')
         bot.send_message(user_id, 'Выберите опцию из меню', reply_markup=buttons.main(product))
+        bot.send_message(user_id, 'Если вы хотите оставить отзыв нажмите на кнопку перейти на сайт!', reply_markup=buttons.comment())
+        bot.register_next_step_handler(message, start_mybot_text)
     elif not skan:
         bot.send_message(user_id, 'Отправьте ваш ник в стиме')
+        bot.register_next_step_handler(message, get_nick)
+
+
+
+@bot.message_handler(content_types=['text'])
+def start_mybot_text(message):
+    if message.text == 'Перейти на сайт':
+        bot.send_message(message.from_user.id, 'http://127.0.0.1:8000/')
+
     bot.register_next_step_handler(message, get_nick)
 
 
@@ -180,6 +191,10 @@ def get_user_product(call):
     bot.edit_message_text('Выберите количество',
                           chat_id=user_id, message_id=message_id,
                           reply_markup=buttons.choose_count())
+
+
+
+
 
 
 

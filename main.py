@@ -5,7 +5,6 @@ from telebot import types
 # import re
 # regex = re.compile(r'([https]+[://])*[steamcommunity.com]+[/]+[tradeoffer]+[/]+[new]+[?/]+[partner]+[=]+[123456789]+[&]+[token]+[=]+[ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz]')
 
-
 bot = telebot.TeleBot('6450268677:AAGGV8QeP_le-662m1CwWtkH2DiG6MxqiEk')
 costumer = {}
 
@@ -69,8 +68,7 @@ def get_trade(message, user):
 @bot.message_handler(content_types=['text'])
 def start_mybot_text(message):
     if message.text == 'Перейти на сайт':
-        bot.send_message(message.from_user.id, 'http://127.0.0.1:8000/')
-
+        bot.send_message(message.from_user.id, 'http://127.0.0.1:8000/', reply_markup=telebot.types.ReplyKeyboardRemove())
 
 
 @bot.callback_query_handler(lambda call: call.data in ['plus', 'minus', 'add_cart', 'back', 'count'])
